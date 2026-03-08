@@ -2,6 +2,551 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Romantic Surprise</title>
+    <style>
+        /* Mobile-First, High-Perf Responsive Design */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            background: #000; /* Dark base for starry/creativity */
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            touch-action: manipulation;
+        }
+        /* Creative: Canvas Background - Dynamic Starfield + Nebula */
+        #canvas-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .hearts, .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .heart, .star {
+            position: absolute;
+            font-size: clamp(16px, 3vw, 24px);
+            animation: float 6s ease-in-out infinite;
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+        .star { color: #ffd700; animation-delay: -2s; } /* Offset for layering */
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg) scale(0); opacity: 0; }
+            20% { opacity: 1; scale(1); }
+            50% { transform: translateY(40vh) rotate(180deg) scale(1.5); }
+            80% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg) scale(0); opacity: 0; }
+        }
+        .content {
+            text-align: center;
+            z-index: 2;
+            color: #fff;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            animation: gentleFloat 8s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 105, 180, 0.5)); /* Glow for magic */
+        }
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-10px) rotateX(5deg); } /* 3D tilt */
+        }
+        h1 {
+            font-size: clamp(2.5em, 8vw, 4.5em);
+            margin: 10px 0;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textGradient 4s ease infinite, 3DSpin 10s linear infinite; /* Creative gradient + slow 3D spin */
+            transform-style: preserve-3d;
+        }
+        @keyframes textGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes 3DSpin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+        p {
+            font-size: clamp(1.2em, 4vw, 1.6em);
+            margin: 20px 0;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+        .love-meter {
+            width: 80%;
+            height: 25px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin: 25px auto;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(255,0,0,0.3);
+        }
+        .love-fill {
+            height: 100%;
+            background: conic-gradient(from 0deg, #ff0000, #ff69b4, #ffd700, #fff);
+            width: 0%;
+            animation: fillLove 5s ease-out forwards, rotateFill 20s linear infinite; /* Creative rotating fill */
+            border-radius: 15px;
+        }
+        @keyframes fillLove {
+            to { width: 100%; }
+        }
+        @keyframes rotateFill {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .compliment {
+            font-size: clamp(1em, 3.5vw, 1.2em);
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px); /* Glassmorphism for modern creativity */
+            border: 1px solid rgba(255,255,255,0.2);
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { box-shadow: 0 0 5px rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 0 30px rgba(255,105,180,0.6); }
+            100% { box-shadow: 0 0 5px rgba(255,255,255,0.3); }
+        }
+        /* Modal - Enhanced with Parallax & Particles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+            perspective: 1000px; /* 3D space for parallax */
+        }
+        .modal-content {
+            background: linear-gradient(135deg, rgba(255,107,107,0.9), rgba(78,205,196,0.9));
+            padding: clamp(40px, 10vw, 60px);
+            border-radius: 30px;
+            text-align: center;
+            color: white;
+            width: 95%;
+            max-width: 500px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            transform-style: preserve-3d;
+            animation: modalPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), colorShift 6s ease infinite;
+            position: relative;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0) rotateX(-90deg); opacity: 0; }
+            100% { transform: scale(1) rotateX(0deg); opacity: 1; }
+        }
+        @keyframes colorShift {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+        .modal h2 {
+            font-size: clamp(2.2em, 7vw, 3em);
+            margin: 20px 0;
+            animation: glowPulse 2s infinite;
+            transform: translateZ(50px); /* 3D depth */
+        }
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+            50% { text-shadow: 0 0 40px rgba(255,255,255,1), 0 0 60px rgba(255,105,180,0.8); }
+        }
+        .embarrassing-text {
+            font-size: clamp(1.1em, 4vw, 1.4em);
+            margin: 25px 0;
+            font-style: italic;
+            animation: wave 2s infinite;
+        }
+        @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .yes-btn, .yess-btn {
+            background: linear-gradient(45deg, #ffeb3b, #ffc107);
+            color: #d32f2f;
+            border: none;
+            padding: clamp(18px, 6vw, 25px) clamp(35px, 12vw, 50px);
+            margin: 15px 8px;
+            font-size: clamp(1.5em, 5.5vw, 2em);
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            min-height: 70px;
+            width: 100%;
+            max-width: 220px;
+            transform-style: preserve-3d;
+        }
+        .yes-btn:active, .yess-btn:active {
+            transform: scale(0.95) translateZ(20px);
+        }
+        .yes-btn:hover, .yess-btn:hover {
+            transform: scale(1.15) rotateY(180deg); /* 3D flip on hover */
+            box-shadow: 0 15px 35px rgba(255,235,59,0.4);
+        }
+        /* Particles Container in Modal */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 30px;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            animation: particleFloat 10s linear infinite;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(100%) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100%) translateX(50px); opacity: 0; }
+        }
+        /* Celebration: Multi-Layered Effects */
+        .confetti {
+            position: fixed;
+            width: clamp(6px, 1.5vw, 10px);
+            height: clamp(6px, 1.5vw, 10px);
+            pointer-events: none;
+            z-index: 1001;
+            animation: confetti-fall 6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            border-radius: 20%;
+        }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg) scale(0) skew(0deg); opacity: 1; }
+            30% { scale(1); skew(20deg); }
+            100% { transform: translateY(100vh) rotate(1080deg) scale(0) skew(-20deg); opacity: 0; }
+        }
+        .firework {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffd700, #ff6b6b);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1001;
+            animation: explode 3s ease-out forwards;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        @keyframes explode {
+            0% { transform: scale(0) translateZ(0); opacity: 1; }
+            40% { scale(1.5); }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0) translateZ(100px); opacity: 0; }
+        }
+        .spark {
+            position: fixed;
+            font-size: clamp(18px, 4vw, 24px);
+            pointer-events: none;
+            z-index: 1001;
+            animation: spark-fly 4s ease-out forwards;
+        }
+        @keyframes spark-fly {
+            0% { opacity: 1; transform: scale(1) translate(0, 0) rotate(0deg); }
+            100% { opacity: 0; transform: scale(0.5) translate(150px, -150px) rotate(720deg); }
+        }
+        /* Victory - 3D Flip & Scale */
+        .victory {
+            display: none;
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%) translateZ(0);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 25px;
+            color: #e91e63;
+            z-index: 1002;
+            animation: victoryFlip 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, megaBounce 1.2s infinite 1s;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform-style: preserve-3d;
+        }
+        @keyframes victoryFlip {
+            0% { transform: translateX(-50%) rotateY(180deg) scale(0); opacity: 0; }
+            100% { transform: translateX(-50%) rotateY(0deg) scale(1); opacity: 1; }
+        }
+        @keyframes megaBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-20px) scale(1.1); }
+        }
+        .dance-emoji {
+            font-size: clamp(2.5em, 9vw, 4em);
+            animation: crazyDance 0.6s infinite;
+            display: block;
+            margin-bottom: 15px;
+        }
+        @keyframes crazyDance {
+            0% { transform: rotate(0deg) scale(1) skew(0deg); }
+            20% { transform: rotate(20deg) scale(1.2) skew(5deg); }
+            40% { transform: rotate(0deg) scale(1.3) skew(-5deg); }
+            60% { transform: rotate(-20deg) scale(1.2) skew(5deg); }
+            80% { transform: rotate(0deg) scale(1.1) skew(0deg); }
+            100% { transform: rotate(0deg) scale(1) skew(0deg); }
+        }
+        /* Mobile Tweaks */
+        @media (hover: none) and (pointer: coarse) {
+            .yes-btn:hover, .yess-btn:hover { transform: scale(1.05); } /* Simplified for touch */
+            body { cursor: default; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    <div class="hearts" id="hearts"></div>
+    <div class="stars" id="stars"></div>
+    <div class="content">
+        <!-- REPLACE: Main Title -->
+        <h1>I love you Miss. Lalo 💖</h1>
+        <!-- REPLACE: Main Description -->
+        <p>"You're cuter than a baby elephant in sunglasses! 🐘😎",
+            "Your laugh is my favorite playlist on repeat! 🎶😄",
+            "I'd share my blanket with you... that's TRUE LOVE! 🥟❤️",
+            "You turn my 'oops' into 'yay!' every day! ✨🤗" 🌟</p>
+        <div class="love-meter">
+            <div class="love-fill"></div>
+        </div>
+        <!-- REPLACE: Compliment/Tease -->
+        <div class="compliment" id="compliment">Miss. Bhoomi Sharma (Rana)!</div>
+    </div>
+
+    <!-- Modal -->
+    <div id="proposalModal" class="modal">
+        <div class="modal-content">
+            <div class="particles" id="particles"></div>
+            <!-- REPLACE: Proposal Question -->
+            <h2>Will You Marry Me? 💍</h2>
+            <!-- REPLACE: Embarrassing/Fun Text -->
+            <div class="embarrassing-text" id="embarrassingText">"P.S. If no, I'll embarrass you with infinite talk forever! 🕺💃",
+            "Imagine after marriage: We have 5 babies, who are wearing glasess calling you mamma, mamma! 😅👰",
+            "Say yes, or I'll lift you and make you for WDS! 🎤🙈",
+            "You're blushing already? AWWWWWWWWWW! 😜🎂"</div>
+            <button class="yes-btn" onclick="acceptProposal()">YES!</button>
+            <button class="yess-btn" onclick="acceptProposal()">YESS!!</button>
+        </div>
+    </div>
+
+    <!-- Victory -->
+    <div id="victory" class="victory">
+        <div class="dance-emoji">🎉🥳💃🕺</div>
+        <!-- REPLACE: Victory Message -->
+        <p>I always miss you so much. </p>
+    </div>
+
+    <script>
+        // Canvas Nebula/Starfield Background (Creative Visual Core)
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        class NebulaParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.hue = Math.random() * 360;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                this.hue += 0.5;
+            }
+            draw() {
+                ctx.fillStyle = `hsla(${this.hue}, 70%, 60%, 0.1)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        for (let i = 0; i < 150; i++) particles.push(new NebulaParticle());
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Floating Hearts & Stars (Layered for Depth)
+        const heartEmojis = ['💖', '💕', '💗', '🌹'];
+        const starEmojis = ['⭐', '✨', '🌟'];
+        function createElement(type, emojis) {
+            const elem = document.createElement('div');
+            elem.className = type;
+            elem.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+            elem.style.left = Math.random() * 100 + 'vw';
+            elem.style.animationDelay = Math.random() * 6 + 's';
+            elem.style.opacity = Math.random() * 0.7 + 0.3;
+            document.getElementById(type + 's').appendChild(elem);
+            setTimeout(() => elem.remove(), 6000);
+        }
+        setInterval(() => createElement('heart', heartEmojis), 400);
+        setInterval(() => createElement('star', starEmojis), 600);
+
+        // Touch/Mouse Trail with Glow
+        let trailId;
+        function createTrail(e) {
+            const x = e.clientX || (e.touches?.[0]?.clientX) || window.innerWidth / 2;
+            const y = e.clientY || (e.touches?.[0]?.clientY) || window.innerHeight / 2;
+            if (Math.random() < 0.15) {
+                const trail = document.createElement('div');
+                trail.innerHTML = '💫';
+                trail.style.position = 'absolute';
+                trail.style.left = x + 'px';
+                trail.style.top = y + 'px';
+                trail.style.transform = 'translate(-50%, -50%)';
+                trail.style.fontSize = '20px';
+                trail.style.pointerEvents = 'none';
+                trail.style.zIndex = '3';
+                trail.style.animation = 'glowPulse 1s ease-out forwards';
+                trail.style.filter = 'drop-shadow(0 0 10px #fff)';
+                document.body.appendChild(trail);
+                setTimeout(() => trail.remove(), 1000);
+            }
+        }
+        document.addEventListener('mousemove', createTrail);
+        document.addEventListener('touchmove', createTrail, { passive: true });
+
+        // Modal Particles (Inside Modal for Immersion)
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            document.getElementById('particles').appendChild(particle);
+            setTimeout(() => particle.remove(), 10000);
+        }
+        setInterval(createParticle, 800);
+
+        // Functions (Keep as-is, but visuals enhanced)
+        function showModal() {
+            document.getElementById('proposalModal').style.display = 'flex';
+            document.body.style.animation = 'shake 0.6s ease-in-out';
+            setTimeout(() => document.body.style.animation = '', 600);
+            if (navigator.vibrate) navigator.vibrate(300);
+        }
+
+        function acceptProposal() {
+            document.getElementById('proposalModal').style.display = 'none';
+            showMegaCelebration();
+            setTimeout(showModal, 8000);
+        }
+
+        function showVictory() {
+            document.getElementById('victory').style.display = 'block';
+            setTimeout(() => document.getElementById('victory').style.display = 'none', 6000);
+        }
+
+        function showMegaCelebration() {
+            // Enhanced Confetti (More Shapes, Twists)
+            for (let i = 0; i < 120; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                confetti.style.animationDelay = Math.random() * 0.8 + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 6000);
+            }
+            // Fireworks with Trails
+            for (let i = 0; i < 40; i++) {
+                const fw = document.createElement('div');
+                fw.className = 'firework';
+                const angle = (i / 40) * Math.PI * 2;
+                const dist = 200 + Math.random() * 200;
+                fw.style.left = '50%';
+                fw.style.top = '50%';
+                fw.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                fw.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(fw);
+                setTimeout(() => fw.remove(), 3000);
+            }
+            // Sparks with Random Paths
+            for (let i = 0; i < 20; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.innerHTML = ['🎆', '💥', '🌟', '✨', '⭐'][Math.floor(Math.random() * 5)];
+                spark.style.left = Math.random() * 100 + 'vw';
+                spark.style.top = Math.random() * 100 + 'vh';
+                spark.style.animationDelay = Math.random() * 0.5 + 's';
+                document.body.appendChild(spark);
+                setTimeout(() => spark.remove(), 4000);
+            }
+            showVictory();
+            // Screen Flash for Joy
+            document.body.style.animation = 'glowPulse 0.5s';
+            setTimeout(() => document.body.style.animation = '', 500);
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+
+        // Init
+        window.onload = () => {
+            showModal();
+            // Vibrate on load
+            if (navigator.vibrate) navigator.vibrate(200);
+        };
+    </style>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+        
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Will You Marry Me? (But Make It Epic!) 💕</title>
     <style>
